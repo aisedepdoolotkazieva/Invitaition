@@ -1,0 +1,711 @@
+
+\<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Приглашение на Тои</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    /* ==========================================
+       1. СТИЛИ И ПЕРЕМЕННЫЕ (CSS)
+       ========================================== */
+    :root {
+      --bg-cream: #FDFBF7;
+      --bg-ivory: #F9F5EC;
+      --text-dark: #3A352F;
+      --text-muted: #7A7265;
+      --accent-gold: #D4AF37;
+      --accent-gold-soft: #E6CA65;
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(212, 175, 55, 0.25);
+      --shadow: 0 10px 30px rgba(58, 53, 47, 0.08);
+      --font-title: 'Cormorant Garamond', serif;
+      --font-body: 'Montserrat', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-cream);
+      color: var(--text-dark);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Фоновую анимацию и частицы */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Элементы Кыргызского Орнамента (SVG декор) */
+    .ornament {
+      text-align: center;
+      margin: 20px 0;
+      color: var(--accent-gold);
+      opacity: 0.8;
+    }
+    .ornament svg {
+      width: 60px;
+      height: 30px;
+      fill: currentColor;
+    }
+
+    /* Кнопки */
+    .btn {
+      background: linear-gradient(135deg, var(--accent-gold), #B8860B);
+      color: #FFF;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1rem;
+      font-family: var(--font-body);
+      font-weight: 500;
+      letter-spacing: 1px;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+      transition: all 0.3s ease;
+      outline: none;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+    }
+
+    /* Стеклянные карточки (Glassmorphism) */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 40px 25px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+    }
+
+    /* ==========================================
+       2. ЭКРАН ЗАСТАВКИИ КОНВЕРТА
+       ========================================== */
+    #intro-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-ivory);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      transition: opacity 1s ease, visibility 1s ease;
+    }
+
+    .intro-title {
+      font-family: var(--font-title);
+      font-size: 2.2rem;
+      color: var(--text-dark);
+      margin-bottom: 30px;
+      opacity: 0;
+      animation: fadeIn 2s forwards 0.5s;
+    }
+
+    .open-btn {
+      opacity: 0;
+      animation: fadeIn 2s forwards 2.5s;
+    }
+
+    /* Конверт */
+    .envelope-wrapper {
+      position: absolute;
+      width: 280px;
+      height: 180px;
+      background-color: #F0E6D2;
+      border: 1px solid var(--accent-gold-soft);
+      border-radius: 8px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transform: scale(0.8);
+      pointer-events: none;
+      transition: all 0.8s ease;
+    }
+
+    .envelope-wrapper.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .card-inside {
+      width: 90%;
+      height: 80%;
+      background: #FFF;
+      border: 1px solid var(--accent-gold);
+      border-radius: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: var(--font-title);
+      font-size: 1.5rem;
+      color: var(--accent-gold);
+      transition: transform 0.8s ease 0.5s;
+    }
+
+    .envelope-wrapper.open .card-inside {
+      transform: translateY(-40px);
+    }
+
+    /* ==========================================
+       3. ОСНОВНОЙ КОНТЕНТ
+       ========================================== */
+    #main-content {
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    h1.main-title {
+      font-family: var(--font-title);
+      font-size: 3.2rem;
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+
+    .names {
+      font-family: var(--font-title);
+      font-size: 2.5rem;
+      color: var(--accent-gold);
+      margin: 15px 0;
+      font-style: italic;
+    }
+
+    .event-details-brief {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    /* Анимации при прокрутке */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .scroll-reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Юмор Блок */
+    .humor-box {
+      text-align: center;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--text-dark);
+      border-left: 3px solid var(--accent-gold);
+      padding-left: 15px;
+      margin: 20px 0;
+    }
+
+    /* Таймер */
+    .timer-container {
+      text-align: center;
+    }
+
+    .timer-title {
+      font-family: var(--font-title);
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
+    .timer-grid {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .timer-block {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--accent-gold-soft);
+      padding: 15px;
+      border-radius: 12px;
+      min-width: 70px;
+    }
+
+    .timer-number {
+      font-family: var(--font-title);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+      display: block;
+    }
+
+    .timer-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Программа вечера */
+    .timeline {
+      position: relative;
+      margin: 30px 0;
+    }
+
+    .timeline-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .timeline-icon {
+      width: 50px;
+      height: 50px;
+      background: var(--bg-ivory);
+      border: 1px solid var(--accent-gold);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.3rem;
+      margin-right: 20px;
+      flex-shrink: 0;
+    }
+
+    .timeline-text h4 {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+    }
+
+    .timeline-text p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Галерея */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .gallery-item {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      height: 180px;
+      background-color: #EAE3D2;
+      cursor: pointer;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.08);
+    }
+
+    /* Интерактивная кнопка RSVP */
+    .rsvp-container {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    #rsvp-message {
+      margin-top: 15px;
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      color: var(--accent-gold);
+      display: none;
+    }
+
+    /* Пасхалка */
+    .easter-egg-container {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .secret-btn {
+      background: transparent;
+      border: 1px dashed var(--accent-gold);
+      color: var(--text-muted);
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .secret-btn:hover {
+      color: var(--accent-gold);
+      border-style: solid;
+    }
+
+    #secret-message {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-style: italic;
+      display: none;
+    }
+
+    /* Подвал */
+    footer {
+      text-align: center;
+      padding: 40px 20px 20px;
+      font-family: var(--font-title);
+      font-size: 1.3rem;
+      color: var(--text-muted);
+    }
+
+    /* Анимация плавного появления */
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* Адаптированность под мобильные устройства */
+    @media (max-width: 600px) {
+      h1.main-title { font-size: 2.3rem; }
+      .names { font-size: 1.8rem; }
+      .timer-grid { gap: 8px; }
+      .timer-block { min-width: 55px; padding: 10px 5px; }
+      .timer-number { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="particles-canvas"></canvas>
+
+  <div id="intro-screen">
+    <div class="intro-title">Сиздер үчүн маанилүү кабар бар...</div>
+    <button class="btn open-btn" onclick="openInvitation()">✨ Чакырууну ачуу ✨</button>
+
+    <div class="envelope-wrapper" id="envelope">
+      <div class="card-inside">Чакыруу</div>
+    </div>
+  </div>
+
+  <div id="main-content">
+
+    <header class="scroll-reveal">
+      <div class="ornament">
+        <svg viewBox="0 0 100 50">
+          <path d="M10,25 Q25,5 40,25 T70,25 T100,25 Q85,45 70,25 T40,25 T10,25 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+          <circle cx="50" cy="25" r="5" fill="currentColor"/>
+        </svg>
+      </div>
+      <h1 class="main-title">Кадырлуу коноктор!</h1>
+      
+      <div class="names">бир нерсе той</div> 
+      <p class="event-details-brief">
+        Сиздерди биздин кубанычыбызды бирге бөлүшүүгө чакырыбыз!
+      </p>
+    </header>
+
+    <section class="glass-card scroll-reveal">
+      <div class="humor-box" id="random-humor">
+        </div>
+    </section>
+
+    <section class="glass-card scroll-reveal">
+      <div class="ornament">
+        <svg viewBox="0 0 100 50">
+          <path d="M20,25 Q50,0 80,25 Q50,50 20,25 Z" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </div>
+      
+      <div style="text-align: center;">
+        <h3 style="font-family: var(--font-title); font-size: 1.8rem; color: var(--accent-gold);">Күнү жана убактысы</h3>
+        <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 15px;">25 Сентябрь 2026 жыл саат 18:00</p>
+        
+        <h3 style="font-family: var(--font-title); font-size: 1.8rem; color: var(--accent-gold);">Дареги</h3>
+        <p style="font-size: 1.1rem;">Ресторан </p>
+        <p style="color: var(--text-muted);">Г.Талас ул.</p>
+      </div>
+    </section>
+
+    <section class="glass-card scroll-reveal timer-container">
+      <div class="timer-title">Салтанатка чейин калды:</div>
+      <div class="timer-grid" id="timer">
+        <div class="timer-block">
+          <span class="timer-number" id="days">00</span>
+          <span class="timer-label">Күн</span>
+        </div>
+        <div class="timer-block">
+          <span class="timer-number" id="hours">00</span>
+          <span class="timer-label">Саат</span>
+        </div>
+        <div class="timer-block">
+          <span class="timer-number" id="minutes">00</span>
+          <span class="timer-label">Мүнөт</span>
+        </div>
+        <div class="timer-block">
+          <span class="timer-number" id="seconds">00</span>
+          <span class="timer-label">Секунд</span>
+        </div>
+      </div>
+      <div id="timer-finished" style="display:none; font-family: var(--font-title); font-size: 1.8rem; color: var(--accent-gold); margin-top: 10px;">
+        Унутулгус күндөрүбүздүн бири! 🎉
+      </div>
+    </section>
+
+    <section class="glass-card scroll-reveal">
+      <h3 style="font-family: var(--font-title); font-size: 2rem; text-align: center; margin-bottom: 20px;">Как нас найти</h3>
+      
+      <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid var(--accent-gold-soft);">
+        <iframe 
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d187158.4237894371!2d74.4568600868779!3d42.87462123565983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x389eb7dc91b3a855%3A0x5e7b28ad5b42837a!2sBishkek!5e0!3m2!1sen!2skg!4v1680000000000!5m2!1sen!2skg" 
+          width="100%" 
+          height="100%" 
+          style="border:0;" 
+          allowfullscreen="" 
+          loading="lazy">
+        </iframe>
+      </div>
+    </section>
+
+    <section class="rsvp-container scroll-reveal">
+      <button class="btn" onclick="acceptInvitation()">Мен сөзсүз келем! ❤️</button>
+      <div id="rsvp-message">Рахмат! Сиздерди маараке кечесинде күтөбүз! ✨</div>
+    </section>
+
+    <div class="easter-egg-container scroll-reveal">
+      <button class="secret-btn" onclick="showSecret()">Купуя</button>
+      <div id="secret-message"></div>
+    </div>
+
+    <footer>
+      <p>Буд өзгөчө күндү биз менен бөлүшкөнүңүз үчүн рахмат 🤍</p>
+    </footer>
+
+  </div>
+
+  <script>
+    /* --------------------------------------------------------
+       АНИМАЦИЯ ФОНА (Золотые частицы и свечение)
+       -------------------------------------------------------- */
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedY = Math.random() * -0.5 - 0.2;
+        this.speedX = Math.random() * 0.4 - 0.2;
+        this.opacity = Math.random() * 0.5 + 0.2;
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        if (this.y < 0) this.reset();
+      }
+      draw() {
+        ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 40; i++) {
+      particles.push(new Particle());
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+
+    /* --------------------------------------------------------
+       ЭФФЕКТ ОТКРЫТИЯ (Конверт и Заставка)
+       -------------------------------------------------------- */
+    function openInvitation() {
+      const introScreen = document.getElementById('intro-screen');
+      const envelope = document.getElementById('envelope');
+      const mainContent = document.getElementById('main-content');
+      
+      const introTitle = document.querySelector('.intro-title');
+      const openBtn = document.querySelector('.open-btn');
+
+      introTitle.style.opacity = '0';
+      openBtn.style.opacity = '0';
+
+      setTimeout(() => {
+        envelope.classList.add('active');
+        
+        setTimeout(() => {
+          envelope.classList.add('open');
+          
+          setTimeout(() => {
+            introScreen.style.opacity = '0';
+            introScreen.style.visibility = 'hidden';
+            mainContent.style.opacity = '1';
+            checkScroll(); // Инициализация анимации при скролле
+          }, 1200);
+
+        }, 800);
+
+      }, 400);
+    }
+
+
+    /* --------------------------------------------------------
+       ЮМОР БЛОК (Случайный выбор фразы)
+       -------------------------------------------------------- */
+    const humorQuotes = [
+      "Эгер келбесеңиз ,баары бир Беш бармакты жеп коюшат😄",
+      "Тосттор көп болоруна кепилдик беребиз,бтрок микрофонду баарына эле бере бербейбиз.😄",
+      "Биз сиз үчүн атайын дастаркондон орундук даярдап койдук 😄"
+    ];
+
+    document.getElementById('random-humor').innerText = 
+      humorQuotes[Math.floor(Math.random() * humorQuotes.length)];
+
+
+    /* --------------------------------------------------------
+       ТАЙМЕР ОБРАТНОГО ОТСЧЕТА
+       ========================================================
+       МЕСТО ДЛЯ РЕДАКТИРОВАНИЯ: Задайте нужную дату (ГГГГ-ММ-ДДTHH:ММ:СС)
+       -------------------------------------------------------- */
+    const targetDate = new Date("2026-09-25T18:00:00").getTime();
+
+    function updateTimer() {
+      const now = new Date().getTime();
+      const difference = targetDate - now;
+
+      if (difference <= 0) {
+        document.getElementById('timer').style.display = 'none';
+        document.getElementById('timer-finished').style.display = 'block';
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      document.getElementById('days').innerText = days < 10 ? '0' + days : days;
+      document.getElementById('hours').innerText = hours < 10 ? '0' + hours : hours;
+      document.getElementById('minutes').innerText = minutes < 10 ? '0' + minutes : minutes;
+      document.getElementById('seconds').innerText = seconds < 10 ? '0' + seconds : seconds;
+    }
+
+    setInterval(updateTimer, 1000);
+    updateTimer();
+
+
+    /* --------------------------------------------------------
+       ИНТЕРАКТИВ (Конфетти при нажатии "Я приду")
+       -------------------------------------------------------- */
+    function acceptInvitation() {
+      const msg = document.getElementById('rsvp-message');
+      msg.style.display = 'block';
+
+      // Запуск конфетти
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#D4AF37', '#F9F5EC', '#E6CA65']
+        });
+      }
+    }
+
+
+    /* --------------------------------------------------------
+       ПАСХАЛКА (Секретная кнопка)
+       -------------------------------------------------------- */
+    const secretQuotes = [
+      "Ким биринчи келсе,ошол приз алат",
+    ];
+
+    function showSecret() {
+      const secretMsg = document.getElementById('secret-message');
+      const randomSecret = secretQuotes[Math.floor(Math.random() * secretQuotes.length)];
+      secretMsg.innerText = randomSecret;
+      secretMsg.style.display = 'block';
+    }
+
+
+    /* --------------------------------------------------------
+       АНИМАЦИЯ ПОЯВЛЕНИЯ ПРИ СКРОЛЛЕ
+       -------------------------------------------------------- */
+    function checkScroll() {
+      const reveals = document.querySelectorAll('.scroll-reveal');
+      const triggerBottom = window.innerHeight * 0.85;
+
+      reveals.forEach(el => {
+        const top = el.getBoundingClientRect().top;
+        if (top < triggerBottom) {
+          el.classList.add('visible');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', checkScroll);
+  </script>
+</body>
+</html>
